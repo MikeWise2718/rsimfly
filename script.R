@@ -24,4 +24,8 @@ e1 <- cbind(cos(theta) + 4 * cos(2 * theta),
 
 knot <- cylinder3d(center = cen,e1 = e1,radius = 0.8,closed = TRUE)
 
-shade3d(addNormals(subdivision3d(knot,depth = 2)),col = "purple")
+shade3d(addNormals(subdivision3d(knot,depth = 2)),col = "green")
+
+hdf <- read.csv("tstate_helix.csv")
+
+lines3d(hdf$x,hdf$y,hdf$z,col = "purple")
