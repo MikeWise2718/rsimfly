@@ -21,8 +21,10 @@ shinyUI(fluidPage(
    mainPanel(h2("main panel"),
      tabsetPanel(
        tabPanel("LinePlot",h3("Random Walk"),plotOutput("lineplot")),
-       tabPanel("Trefoil",h3("Trefoil"),rglwidgetOutput("trefoil")),
+       tabPanel("Green Trefoil",h3("Trefoil"),rglwidgetOutput("gtrefoil")),
+       tabPanel("Purple Trefoil",h3("Trefoil"),rglwidgetOutput("ptrefoil")),
        tabPanel("Trajectory",h3("Trajectory"),rglwidgetOutput("trajectory")),
+       tabPanel("Crazyflie",h3("Crazyflie"),rglwidgetOutput("crazyflie")),
        tabPanel("Data",h3("Data Dump"),
                  div(dataTableOutput("dataframe"),class = "table",style = "font-size:80%;font-family:'Lucida Console New'")
                  ),

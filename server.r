@@ -7,9 +7,13 @@ library(ggplot2)
 library(shinyRGL)
 library(rgl)
 library(rglwidget)
+library(mw3dlib)
+
+cfobj <- mw3dlib::readCompObjCrazyflie()
 
 shinyServer(function(input, output) 
 {
+
   histdata <- reactive(
     {
       set.seed(input$seed)
@@ -40,7 +44,7 @@ shinyServer(function(input, output)
                           pageLength = 100
                         )
   )
-  output$trefoil <- renderRglwidget(
+  output$gtrefoil <- renderRglwidget(
     {
        theta <- seq(0,2 * pi,len = 25)
        cen <- cbind(sin(theta) + 2 * sin(2 * theta),
@@ -57,10 +61,35 @@ shinyServer(function(input, output)
       rglwidget()
     }
   )
+  output$ptrefoil <- renderRglwidget({
+  print("rendering trefoil")
+  theta <- seq(0,2 * pi,len = 25)
+  cen <- cbind(sin(theta) + 2 * sin(2 * theta),
+              2 * sin(3 * theta),
+              cos(theta) - 2 * cos(2 * theta))
+
+    e1 <- cbind(cos(theta) + 4 * cos(2 * theta),
+             6 * cos(3 * theta),
+             sin(theta) + 4 * sin(2 * theta))
+
+    knot <- cylinder3d(center = cen,e1 = e1,radius = 0.8,closed = TRUE)
+
+    shade3d(addNormals(subdivision3d(knot,depth = 2)),col = "purple")
+  print("done rendering trefoil")
+  rglwidget()
+  }
+  )
   output$trajectory <- renderRglwidget({
-   hdf <- read.csv("tstate_helix.csv")
-   lines3d(hdf$x,hdf$y,hdf$z,col = "purple")
-   rglwidget()
+  hdf <- read.csv("tstate_helix.csv")
+  lines3d(hdf$x,hdf$y,hdf$z,col = "purple")
+  rglwidget()
+  }
+  )
+  output$crazyflie <- renderRglwidget({
+  print("rendering crazyflie")
+  mw3dlib::renderCompObj3d(cfobj)
+  print("done rendering crazyflie")
+  rglwidget()
   }
   )
 
