@@ -4,15 +4,22 @@ options(rgl.useNULL=TRUE)
 
 library(shiny)
 library(ggplot2)
+library(shinyFiles)
 library(shinyRGL)
 library(rgl)
 library(rglwidget)
 library(mw3dlib)
+library(reshape2)
 
 cfobj <- mw3dlib::readCompObjCrazyflie()
+inicsvname <- "tstate_helix.csv"
+defhdf <- read.csv(inicsvname)
 
-shinyServer(function(input, output) 
+shinyServer(function(input, output,session) 
 {
+  shinyFileChoose(input = input,id = "trajfile",session = session,roots = c("wd" = '.'))
+
+  mem <- reactiveValues(trajfname = inicsvname)
 
   histdata <- reactive(
     {
@@ -22,6 +29,16 @@ shinyServer(function(input, output)
       df
     }
   )
+  hdf <- reactive({
+    if (is.null(input$trajfile)) return(defhdf)
+    #inFile <- parseFilePaths(roots = c(wd = '.'),input$trajeil)
+    #print(sprintf("inFile:%s",inFile))
+    lcsvfname <- input$trajfile$files$`0`[[2]]
+    print(lcsvfname)
+    newhdf <- read.csv(lcsvfname)
+    mem$trajfname <- lcsvfname
+    return(newhdf)  
+  })
   tit <- reactive(
     {
       sprintf("seed:%d",input$seed)
@@ -29,61 +46,39 @@ shinyServer(function(input, output)
   )
   output$echo = renderText(
     {
-      sprintf("the %s is %s and has %d rows and uses the %d seed",
-      input$ent,input$clr,nrow(histdata()),input$seed)
+      sprintf("file %s and has %d rows",mem$trajfname,nrow(hdf()))
     }
   )
-  output$dataframe <- renderDataTable({
-                           df<-histdata()
-                           df$x  <- round(df$x,5)
-                           df$y  <- round(df$y,5)
-                           df$dy <- round(df$dy,5)
-                           df
-                          },
-                          options = list(
-                          pageLength = 100
-                        )
-  )
+  output$dataframe <- renderDataTable({hdf()},options = list(pageLength = 100))
   output$gtrefoil <- renderRglwidget(
     {
-       theta <- seq(0,2 * pi,len = 25)
-       cen <- cbind(sin(theta) + 2 * sin(2 * theta),
-              2 * sin(3 * theta),
-              cos(theta) - 2 * cos(2 * theta))
+      print("rendering green trefoil")
+      theta <- seq(0,2 * pi,len = 25)
+      cen <- cbind(sin(theta) + 2 * sin(2 * theta),
+                                2 * sin(3 * theta),
+                   cos(theta) - 2 * cos(2 * theta))
 
       e1 <- cbind(cos(theta) + 4 * cos(2 * theta),
-             6 * cos(3 * theta),
-             sin(theta) + 4 * sin(2 * theta))
+                               6 * cos(3 * theta),
+                  sin(theta) + 4 * sin(2 * theta))
 
       knot <- cylinder3d(center = cen,e1 = e1,radius = 0.8,closed = TRUE)
 
       shade3d(addNormals(subdivision3d(knot,depth = 2)),col = "green")
+      print("done rendering trefoil")
       rglwidget()
     }
   )
-  output$ptrefoil <- renderRglwidget({
-  print("rendering trefoil")
-  theta <- seq(0,2 * pi,len = 25)
-  cen <- cbind(sin(theta) + 2 * sin(2 * theta),
-              2 * sin(3 * theta),
-              cos(theta) - 2 * cos(2 * theta))
-
-    e1 <- cbind(cos(theta) + 4 * cos(2 * theta),
-             6 * cos(3 * theta),
-             sin(theta) + 4 * sin(2 * theta))
-
-    knot <- cylinder3d(center = cen,e1 = e1,radius = 0.8,closed = TRUE)
-
-    shade3d(addNormals(subdivision3d(knot,depth = 2)),col = "purple")
-  print("done rendering trefoil")
-  rglwidget()
-  }
-  )
-  output$trajectory <- renderRglwidget({
-  hdf <- read.csv("tstate_helix.csv")
-  lines3d(hdf$x,hdf$y,hdf$z,col = "purple")
-  rglwidget()
-  }
+  output$trajectory <- renderRglwidget(
+    {
+      print("renderRglwidget")
+#      print(rgl.dev.list())
+#      rgl.close()
+      try(rgl.close())
+      rgl.open()
+      lines3d(hdf()$x,hdf()$y,hdf()$z,col = "purple")
+      rglwidget()
+    }
   )
   output$crazyflie <- renderRglwidget({
   print("rendering crazyflie")
@@ -94,8 +89,11 @@ shinyServer(function(input, output)
   )
 
   output$lineplot <- renderPlot(
-    { 
-      qplot(data=histdata(),x,y,color=I(input$clr),geom="line")
+    {
+      ddf <- hdf()
+      mdf <- melt(ddf,id.vars = "t",,variable.name = "coord",value.name="val")
+      ggplot(mdf) + geom_line(aes(t,val,color=coord)) + 
+                   labs(title=mem$trajfname)
     }
   )
 }
