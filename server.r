@@ -21,14 +21,6 @@ shinyServer(function(input, output,session)
 
   mem <- reactiveValues(trajfname = inicsvname)
 
-  histdata <- reactive(
-    {
-      set.seed(input$seed)
-      df <- data.frame(x=1:input$cnt,dy=rnorm(input$cnt))
-      df$y <- cumsum(df$dy)
-      df
-    }
-  )
   hdf <- reactive({
     if (is.null(input$trajfile)) return(defhdf)
     #inFile <- parseFilePaths(roots = c(wd = '.'),input$trajeil)
@@ -74,8 +66,8 @@ shinyServer(function(input, output,session)
       print("renderRglwidget")
 #      print(rgl.dev.list())
 #      rgl.close()
-      try(rgl.close())
-      rgl.open()
+      #try(rgl.close())
+      #rgl.open()
       lines3d(hdf()$x,hdf()$y,hdf()$z,col = "purple")
       rglwidget()
     }
