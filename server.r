@@ -7,7 +7,6 @@ library(ggplot2)
 library(shinyFiles)
 library(shinyRGL)
 library(rgl)
-library(rglwidget)
 library(mw3dlib)
 library(reshape2)
 
@@ -55,7 +54,7 @@ shinyServer(function(input, output,session)
                   sin(theta) + 4 * sin(2 * theta))
 
       knot <- cylinder3d(center = cen,e1 = e1,radius = 0.8,closed = TRUE)
-
+      try(rgl.close())
       shade3d(addNormals(subdivision3d(knot,depth = 2)),col = "green")
       print("done rendering trefoil")
       rglwidget()
@@ -63,20 +62,20 @@ shinyServer(function(input, output,session)
   )
   output$trajectory <- renderRglwidget(
     {
-      print("renderRglwidget")
+      print("render trajectory")
 #      print(rgl.dev.list())
 #      rgl.close()
-      #try(rgl.close())
-      #rgl.open()
+      try(rgl.close())
       lines3d(hdf()$x,hdf()$y,hdf()$z,col = "purple")
       rglwidget()
     }
   )
   output$crazyflie <- renderRglwidget({
-  print("rendering crazyflie")
-  mw3dlib::renderCompObj3d(cfobj)
-  print("done rendering crazyflie")
-  rglwidget()
+    print("rendering crazyflie")
+    try(rgl.close())
+    mw3dlib::renderCompObj3d(cfobj)
+    print("done rendering crazyflie")
+    rglwidget()
   }
   )
 
