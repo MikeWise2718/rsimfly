@@ -35,6 +35,15 @@ shinyServer(function(input, output,session)
       sprintf("seed:%d",input$seed)
     }
   )
+  output$choose_columns <- renderUI({
+    colnames <- names(hdf())
+    colnames <- colnames[2:length(colnames)] # drop t which is always the first column
+    checkboxGroupInput("columns","Choose columns",
+                       choices = colnames,
+                       selected = colnames)
+  })
+
+
   output$echo = renderText(
     {
       sprintf("file %s and has %d rows",mem$trajfname,nrow(hdf()))
@@ -80,9 +89,10 @@ shinyServer(function(input, output,session)
   )
 
   output$lineplot <- renderPlot(
-    {
+    {     
       ddf <- hdf()
-      mdf <- melt(ddf,id.vars = "t",,variable.name = "coord",value.name="val")
+      mdf <- melt(ddf,id.vars = "t",,variable.name = "coord",value.name = "val")
+      mdf <- mdf[mdf$coord %in% input$columns,]
       ggplot(mdf) + geom_line(aes(t,val,color=coord)) + 
                    labs(title=mem$trajfname)
     }

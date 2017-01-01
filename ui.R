@@ -3,8 +3,8 @@ options(rgl.useNULL=TRUE)
 
 library(shiny)
 library(shinyRGL)
-library(rglwidget)
 library(shinyFiles)
+library(rgl)
 
 shinyUI(fluidPage(
   titlePanel("Simple Shiny Input"),
@@ -16,7 +16,7 @@ shinyUI(fluidPage(
        textInput("ent","Text Input:","Data"),
        sliderInput("cnt","Count:",100,10000,500,5),
        numericInput("seed","Seed:",1234,1,10000,1),
-       numericInput("brk","Breaks:",30,1,100,1)
+       uiOutput("choose_columns")
       ),
    mainPanel(h2("main panel"),
      tabsetPanel(
